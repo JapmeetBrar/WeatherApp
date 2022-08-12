@@ -8,6 +8,13 @@
   </head>
   <body>
     <div class="container">
+      <div class="button-cover">
+        <div class="button r" id="button-1">
+          <input type="checkbox" class="checkbox" />
+          <div class="knobs"></div>
+          <div class="layer"></div>
+        </div>
+      </div>
       <div class="displayContainer">
         <div class="mainText">
           <div class="dateContainer">
@@ -23,7 +30,12 @@
       </div>
       <div class="sideContainer">
         <div class="search">
-          <input type="text" placeholder="Search Location..." value="Toronto" />
+          <input
+            id="cityInput"
+            type="text"
+            placeholder="Search Location..."
+            value="Toronto"
+          />
           <button class="submit"></button>
         </div>
         <div class="weatherDetails">
