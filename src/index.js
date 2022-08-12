@@ -6,10 +6,8 @@ import rainBG from "./imgs/rain.jpg";
 
 let container = document.querySelector(".container");
 
-container.class;
-let api_key = "b58be16590e00534237546c3de0fc8fd";
 let searchBtn = document.querySelector(".submit");
-let input = document.querySelector("input");
+let input = document.querySelector("#cityInput");
 let tempText = document.querySelector(".temp");
 let cityText = document.querySelector(".city");
 let timeText = document.querySelector(".time");
@@ -19,7 +17,9 @@ let feelsLikeText = document.querySelector(".feelsLike .value");
 let humidityText = document.querySelector(".humidity .value");
 let rainText = document.querySelector(".rain .value");
 let windText = document.querySelector(".wind .value");
+let checkbox = document.querySelector(".checkbox");
 
+const api_key = "b58be16590e00534237546c3de0fc8fd";
 const options = {
   weekday: "long",
   year: "2-digit",
@@ -27,11 +27,13 @@ const options = {
   day: "numeric",
 };
 
-async function getWeatherInfo(city) {
+let lastCity = "";
+
+async function getWeatherInfo(city, units) {
   let response, weather;
   try {
     response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${api_key}&units=metric`
+      `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${api_key}&units=${units}`
     );
     weather = await response.json();
     // alert("success");
@@ -76,18 +78,31 @@ async function processWeatherData(weatherData) {
 
 searchBtn.addEventListener("click", updateDom);
 
+checkbox.addEventListener("click", updateDom);
+
+function updateUnits() {}
+
 async function updateDom() {
-  let weatherInfo = await getWeatherInfo(input.value);
+  let system = checkbox.checked ? "imperial" : "metric";
+  let tempUnit = checkbox.checked ? "F" : "C";
+  let speedUnit = checkbox.checked ? "mph" : "m/s";
+
+  let weatherInfo;
+  if (input.value) {
+    weatherInfo = await getWeatherInfo(input.value, system);
+  } else {
+    weatherInfo = await getWeatherInfo(lastCity, system);
+  }
   let currentTime = new Date();
 
   input.value = "";
-  feelsLikeText.textContent = `${weatherInfo.feelsLike}\u00B0C`;
+  feelsLikeText.textContent = `${weatherInfo.feelsLike}\u00B0${tempUnit}`;
   humidityText.textContent = `${weatherInfo.humidity}%`;
 
   rainText.textContent = `${weatherInfo.rain}mm`;
-  windText.textContent = `${weatherInfo.windSpeed} m/s`;
+  windText.textContent = `${weatherInfo.windSpeed} ${speedUnit}`;
 
-  tempText.textContent = `${Math.round(weatherInfo.temp)}\u00B0C`;
+  tempText.textContent = `${Math.round(weatherInfo.temp)}\u00B0${tempUnit}`;
   cityText.textContent = `${weatherInfo.city}, ${weatherInfo.country}`;
 
   timeText.textContent = `${currentTime.toLocaleTimeString("en-us", {
@@ -99,6 +114,8 @@ async function updateDom() {
   } else {
     container.style.backgroundImage = `url(${clearBG})`;
   }
+
+  lastCity = weatherInfo.city;
 
   icon.className = `owi owi-${weatherInfo.weatherIcon}`;
   weatherText.textContent = weatherInfo.condition;
