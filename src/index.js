@@ -36,12 +36,14 @@ async function getWeatherInfo(city, units) {
       `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${api_key}&units=${units}`
     );
     weather = await response.json();
-    // alert("success");
-  } catch (error) {
-    alert("API REQUEST FAILED");
-  }
-
-  return processWeatherData(weather);
+    if (response.ok) {
+      input.setCustomValidity("");
+      return processWeatherData(weather);
+    } else {
+      input.setCustomValidity("I AM EXPECTING A CITY");
+      input.reportValidity();
+    }
+  } catch (error) {}
 }
 
 async function processWeatherData(weatherData) {
@@ -77,10 +79,8 @@ async function processWeatherData(weatherData) {
 }
 
 searchBtn.addEventListener("click", updateDom);
-
+checkbox.addEventListener("click", () => (input.value = ""));
 checkbox.addEventListener("click", updateDom);
-
-function updateUnits() {}
 
 async function updateDom() {
   let system = checkbox.checked ? "imperial" : "metric";
@@ -88,11 +88,13 @@ async function updateDom() {
   let speedUnit = checkbox.checked ? "mph" : "m/s";
 
   let weatherInfo;
+
   if (input.value) {
     weatherInfo = await getWeatherInfo(input.value, system);
   } else {
     weatherInfo = await getWeatherInfo(lastCity, system);
   }
+
   let currentTime = new Date();
 
   input.value = "";
@@ -118,7 +120,15 @@ async function updateDom() {
   lastCity = weatherInfo.city;
 
   icon.className = `owi owi-${weatherInfo.weatherIcon}`;
-  weatherText.textContent = weatherInfo.condition;
+  weatherText.textContent = capitalizeEachWord(weatherInfo.description);
+}
+
+function capitalizeEachWord(text) {
+  let splitText = text.split(" ");
+  splitText.forEach((word, i) => {
+    splitText[i] = word.charAt(0).toUpperCase() + word.substring(1);
+  });
+  return splitText.join(" ");
 }
 
 updateDom();
