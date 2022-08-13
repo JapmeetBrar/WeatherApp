@@ -52,20 +52,15 @@ async function processWeatherData(weatherData) {
   let temp = weatherData.main.temp;
   let feelsLike = weatherData.main.feels_like;
   let humidity = weatherData.main.humidity;
-  let condition = weatherData.weather[0].main;
   let description = weatherData.weather[0].description;
   let windSpeed = weatherData.wind.speed;
-  let rain;
-  if (weatherData.rain !== undefined) {
-    rain = weatherData.rain["1h"];
-  } else rain = 0;
-
   let weatherIcon = weatherData.weather[0].icon;
+
+  let rain = weatherData.rain ? weatherData.rain["1h"] : 0;
 
   let weather = {
     city,
     country,
-    condition,
     description,
     temp,
     feelsLike,
@@ -79,26 +74,28 @@ async function processWeatherData(weatherData) {
 }
 
 searchBtn.addEventListener("click", updateDom);
-checkbox.addEventListener("click", () => (input.value = ""));
-checkbox.addEventListener("click", updateDom);
+checkbox.addEventListener("click", () => {
+  input.value = "";
+  updateDom();
+});
 
 async function updateDom() {
   let system = checkbox.checked ? "imperial" : "metric";
   let tempUnit = checkbox.checked ? "F" : "C";
   let speedUnit = checkbox.checked ? "mph" : "m/s";
-
+  let currentTime = new Date();
   let weatherInfo;
 
-  if (input.value) {
-    weatherInfo = await getWeatherInfo(input.value, system);
-  } else {
-    weatherInfo = await getWeatherInfo(lastCity, system);
-  }
-
-  let currentTime = new Date();
-
+  weatherInfo = await getWeatherInfo(
+    input.value ? input.value : lastCity,
+    system
+  );
   input.value = "";
-  feelsLikeText.textContent = `${weatherInfo.feelsLike}\u00B0${tempUnit}`;
+
+  feelsLikeText.textContent = `${Math.round(
+    weatherInfo.feelsLike
+  )}\u00B0${tempUnit}`;
+
   humidityText.textContent = `${weatherInfo.humidity}%`;
 
   rainText.textContent = `${weatherInfo.rain}mm`;
