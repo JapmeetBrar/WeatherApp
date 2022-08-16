@@ -20,12 +20,6 @@ let windText = document.querySelector(".wind .value");
 let checkbox = document.querySelector(".checkbox");
 
 const api_key = "b58be16590e00534237546c3de0fc8fd";
-const options = {
-  weekday: "long",
-  year: "2-digit",
-  month: "short",
-  day: "numeric",
-};
 
 let lastCity = "";
 
@@ -55,6 +49,7 @@ async function processWeatherData(weatherData) {
   let description = weatherData.weather[0].description;
   let windSpeed = weatherData.wind.speed;
   let weatherIcon = weatherData.weather[0].icon;
+  let timeZoneOffset = weatherData.timezone;
 
   let rain = weatherData.rain ? weatherData.rain["1h"] : 0;
 
@@ -68,6 +63,7 @@ async function processWeatherData(weatherData) {
     windSpeed,
     rain,
     weatherIcon,
+    timeZoneOffset,
   };
 
   return weather;
@@ -83,7 +79,6 @@ async function updateDom() {
   let system = checkbox.checked ? "imperial" : "metric";
   let tempUnit = checkbox.checked ? "F" : "C";
   let speedUnit = checkbox.checked ? "mph" : "m/s";
-  let currentTime = new Date();
   let weatherInfo;
 
   weatherInfo = await getWeatherInfo(
@@ -104,9 +99,7 @@ async function updateDom() {
   tempText.textContent = `${Math.round(weatherInfo.temp)}\u00B0${tempUnit}`;
   cityText.textContent = `${weatherInfo.city}, ${weatherInfo.country}`;
 
-  timeText.textContent = `${currentTime.toLocaleTimeString("en-us", {
-    timeStyle: "short",
-  })} - ${currentTime.toLocaleDateString("en-gb", options)}`;
+  timeText.textContent = getTime(weatherInfo.timeZoneOffset);
 
   if (["Rain", "Drizzle", "Thunderstorm"].includes(weatherInfo.condition)) {
     container.style.backgroundImage = `url(${rainBG})`;
@@ -126,6 +119,24 @@ function capitalizeEachWord(text) {
     splitText[i] = word.charAt(0).toUpperCase() + word.substring(1);
   });
   return splitText.join(" ");
+}
+
+function getTime(offset) {
+  const options = {
+    weekday: "long",
+    year: "2-digit",
+    month: "short",
+    day: "numeric",
+  };
+  let date = new Date();
+  let timeLocal = date.getTime() + date.getTimezoneOffset() * 60000;
+  let newTime = timeLocal + offset * 1000;
+
+  let newDate = new Date(newTime);
+
+  return `${newDate.toLocaleTimeString("en-us", {
+    timeStyle: "short",
+  })} - ${newDate.toLocaleDateString("en-gb", options)}`;
 }
 
 updateDom();
